@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:clickable="true">
+
+    <fragment android:name="com.google.android.gms.maps.SupportMapFragment"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="450dp"
+    android:id="@+id/map" tools:context=".MapsActivity" />
+
+    <Button
+        android:id="@+id/marker_something_new"
+        android:layout_width="195dp"
+        android:layout_height="wrap_content"
+        android:text="Something New?"
+        android:clickable="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/map" />
+
+    <Button
+        android:id="@+id/Miles"
+        android:layout_width="195dp"
+        android:layout_height="wrap_content"
+        android:text="Using Sonar!"
+        android:clickable="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/marker_something_new"
+        android:layout_below="@+id/map" />
+
+</RelativeLayout>
