@@ -61,6 +61,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             location_current = gps.getLocation();
             l_1 = location_current.getLatitude();
             l_2 = location_current.getLongitude();
+            System.out.println("what the hell");
             MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
                     .icon(BitmapDescriptorFactory
                     .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
