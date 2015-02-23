@@ -9,6 +9,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationListener;
+import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -35,6 +37,11 @@ import com.example.ricky.mobilepervasiveonemile.PostNewActivity;
 
 
 import com.google.android.gms.maps.MapView;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 
 import static android.location.LocationManager.GPS_PROVIDER;
 
@@ -49,6 +56,14 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     //set the default number of words for small display
     int len = 20;
 
+    //For same latitude and longitude adjustment
+    int max=20;
+    Random random = new Random();
+
+
+    List<PostInfo> posts = new ArrayList<PostInfo>();
+    HashSet<Double> Latitude = new HashSet<Double>();
+    HashSet<Double> Longitude = new HashSet<Double>();
     //Used to store the post Info the user just type in
     String postInfoFull = null;
     @Override
@@ -68,6 +83,9 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             location_current = gps.getLocation();
             l_1 = location_current.getLatitude();
             l_2 = location_current.getLongitude();
+            Latitude.add(l_1);
+            Longitude.add(l_2);
+            //l_1 = 40.4489771, l_2 = -79.9309191
             MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
                     .icon(BitmapDescriptorFactory
                     .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
@@ -90,8 +108,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
             System.out.println(l_1);
         }
-        double test_l1 = 40.4428000;
-        double test_l2 = -79.9564000;
+        double test_l1 = 40.4489771;
+        double test_l2 = -79.9309191;
         MarkerOptions markPost = new MarkerOptions().position(new LatLng(test_l1,test_l2))
                 .icon(BitmapDescriptorFactory
                         .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
@@ -100,17 +118,21 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 "doing anything";
 
 
-        PostInfo post = new PostInfo(40.45,-79.95,"Everybody is 坑货!");
+        PostInfo post = new PostInfo(40.45,-79.94,"Everybody is 坑货!");
         mMap.addMarker(new MarkerOptions().position(
                 new LatLng(post.getLatitude(), post.getLongitude())).title(post.getMessage()).alpha((float) 0.7));
 
-        PostInfo post2 = new PostInfo(40.4428000,-79.9564000,Title);
+        PostInfo post2 = new PostInfo(40.4428000,-79.9364000,Title);
         mMap.addMarker(new MarkerOptions().position(
                 new LatLng(post2.getLatitude(), post2.getLongitude())).title(post2.getMessage()).alpha((float) 0.7));
+
+        posts.add(post);posts.add(post2);
 
         mMap.setInfoWindowAdapter(this);
         mMap.setOnInfoWindowClickListener(this);
         mMap.setMyLocationEnabled(true);
+
+
 
         //set click listener for button
         Button postNew = (Button) findViewById(R.id.marker_something_new);
@@ -128,9 +150,20 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         refresh.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast toast = Toast.makeText(getApplicationContext(), "now searching!", Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(getApplicationContext(), "now searching!", Toast.LENGTH_LONG);
                 toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
+                mMap.clear();
+                mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(l_1, l_2))
+                        .radius(1500)
+                        .strokeColor(0x2000ff00)
+                        .fillColor(0x2000ff00));
+                for (int i = 0; i < posts.size(); i++) {
+                    mMap.addMarker(new MarkerOptions().position(
+                            new LatLng(posts.get(i).getLatitude(),posts.get(i).getLongitude()))
+                    .title(posts.get(i).getMessage()).alpha((float)0.7));
+                }
             }
         });
 
@@ -159,6 +192,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 .icon(BitmapDescriptorFactory
                         .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         String Title = input;
+        PostInfo post_new = new PostInfo(l_1, l_2,Title);
+        posts.add(post_new);
         mark.title(Title);
 
         mMap.addMarker(mark);

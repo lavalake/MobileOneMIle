@@ -55,8 +55,6 @@
         </activity>
         <activity android:name=".PostNewActivity"
             android:launchMode="singleTask"></activity>
-        <activity android:name=".RefreshActivity"
-            android:launchMode="singleInstance"></activity>
 
     </application>
 
