@@ -141,6 +141,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                         .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         String Title = input;
         mark.title(Title);
+
         mMap.addMarker(mark);
         System.out.println(Title);
 
@@ -195,70 +196,30 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         View infoWindow = getLayoutInflater().inflate(R.layout.infowindow,null);
         TextView title = (TextView) infoWindow.findViewById(R.id.marker_title);
         TextView snippet = (TextView) infoWindow.findViewById(R.id.marker_snippet);
-        Button showLatLng = (Button) infoWindow.findViewById(R.id.marker_show_latlng);
 
         String titleString = marker.getTitle();
         if (TextUtils.isEmpty(titleString)) {
             titleString = "no title";
         }
 
-        /*
-        String snippetString = marker.getSnippet();
-        if (TextUtils.isEmpty(snippetString)) {
-            snippetString = "no snippet";
-        }
-        */
+
 
         title.setText(titleString);
         //snippet.setText(snippetString);
 
-        final double latitude = marker.getPosition().latitude;
-        final double longitude = marker.getPosition().longitude;
 
-        showLatLng.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                Toast.makeText(getApplicationContext(), "latitude = " + latitude +
-                        ",longitude = " + longitude, Toast.LENGTH_SHORT).show();
-            }
-        });
 
         return infoWindow;
     }
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        View infoWindow = getLayoutInflater().inflate(R.layout.infowindow,null);
-        TextView title = (TextView) infoWindow.findViewById(R.id.marker_title);
-        TextView snippet = (TextView) infoWindow.findViewById(R.id.marker_snippet);
-        Button showLatLng = (Button) infoWindow.findViewById(R.id.marker_show_latlng);
 
-        String titleString = marker.getTitle();
-        if (TextUtils.isEmpty(titleString)) {
-            titleString = "no title";
-        }
 
-        /*
-        String snippetString = marker.getSnippet();
-        if (TextUtils.isEmpty(snippetString)) {
-            snippetString = "no snippet";
-        }
-        */
 
-        title.setText(titleString);
-        //snippet.setText(snippetString);
+                Toast.makeText(getApplicationContext(), "latitude = " + l_1 +
+                        ",longitude = " + l_2, Toast.LENGTH_SHORT).show();
 
-        final double latitude = marker.getPosition().latitude;
-        final double longitude = marker.getPosition().longitude;
-
-        showLatLng.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Toast.makeText(getApplicationContext(), "latitude = " + latitude +
-                        ",longitude = " + longitude, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }
