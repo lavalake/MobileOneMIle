@@ -16,12 +16,4 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/marker_show_latlng"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="read more..."
-        android:clickable="true"
-        android:layout_gravity="center_horizontal" />
-
 </LinearLayout>
