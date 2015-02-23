@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.ArrayMap;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -44,6 +45,12 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     private Location location_current;
     double l_1 = 0;
     double l_2 = 0;
+
+    //set the default number of words for small display
+    int len = 20;
+
+    //Used to store the post Info the user just type in
+    String postInfoFull = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +123,17 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             }
         });
 
+        //set fresh listener for button using sonar
+        Button refresh = (Button) findViewById(R.id.refresh);
+        refresh.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast toast = Toast.makeText(getApplicationContext(), "now searching!", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+            }
+        });
+
 
     }
 
@@ -135,6 +153,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             return;
         }
         String input = getIntent().getStringExtra("input").toString();
+        postInfoFull = input;
 
         MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
                 .icon(BitmapDescriptorFactory
@@ -195,18 +214,28 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     public View getInfoContents(Marker marker) {
         View infoWindow = getLayoutInflater().inflate(R.layout.infowindow,null);
         TextView title = (TextView) infoWindow.findViewById(R.id.marker_title);
-        TextView snippet = (TextView) infoWindow.findViewById(R.id.marker_snippet);
+        //TextView snippet = (TextView) infoWindow.findViewById(R.id.marker_snippet);
 
         String titleString = marker.getTitle();
+        //When click the marker, remember the postInfo for toast display
+        postInfoFull = titleString;
+
+        //If the text exceeds the default length, break it
+        String[] words = titleString.split(" ");
+        if (words.length > len) {
+            titleString = "";
+            for (int i = 0; i < len; i++) {
+                titleString += words[i] + " ";
+            }
+            titleString += "......>>";
+            //snippet.setText("Tab to read more");
+
+        }
         if (TextUtils.isEmpty(titleString)) {
             titleString = "no title";
         }
 
-
-
         title.setText(titleString);
-        //snippet.setText(snippetString);
-
 
 
 
@@ -216,10 +245,9 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     @Override
     public void onInfoWindowClick(Marker marker) {
 
-
-
-                Toast.makeText(getApplicationContext(), "latitude = " + l_1 +
-                        ",longitude = " + l_2, Toast.LENGTH_SHORT).show();
-
+        //Toast.makeText(getApplicationContext(), "latitude = " + l_1 +
+                //",longitude = " + l_2, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), postInfoFull,
+                Toast.LENGTH_LONG).show();
     }
 }

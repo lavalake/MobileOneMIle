@@ -23,7 +23,7 @@
         android:layout_below="@+id/map" />
 
     <Button
-        android:id="@+id/Miles"
+        android:id="@+id/refresh"
         android:layout_width="195dp"
         android:layout_height="wrap_content"
         android:text="Using Sonar!"
