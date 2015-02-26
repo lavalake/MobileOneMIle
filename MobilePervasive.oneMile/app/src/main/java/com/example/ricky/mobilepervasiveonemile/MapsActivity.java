@@ -1,11 +1,14 @@
 package com.example.ricky.mobilepervasiveonemile;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.drm.DrmManagerClient;
 import android.graphics.Color;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationListener;
@@ -17,7 +20,10 @@ import android.util.ArrayMap;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View.OnClickListener;
@@ -38,14 +44,18 @@ import com.example.ricky.mobilepervasiveonemile.PostNewActivity;
 
 import com.google.android.gms.maps.MapView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.location.LocationManager.GPS_PROVIDER;
 
-public class MapsActivity extends FragmentActivity implements InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
+public class MapsActivity extends FragmentActivity implements InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapClickListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private MapView mapView;
@@ -53,23 +63,28 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     double l_1 = 0;
     double l_2 = 0;
 
+    PopupWindow popupWindow;
+
     //set the default number of words for small display
     int len = 20;
 
     //For same latitude and longitude adjustment
     int max=20;
-    Random random = new Random();
 
+    boolean hasPop = false;
 
-    List<PostInfo> posts = new ArrayList<PostInfo>();
+    List<PostInfo> posts = new ArrayList<>();
     HashSet<Double> Latitude = new HashSet<Double>();
     HashSet<Double> Longitude = new HashSet<Double>();
     //Used to store the post Info the user just type in
     String postInfoFull = null;
+    String addressInfo = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+
         setUpMapIfNeeded();
         mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                 .getMap();
@@ -77,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             mMap.setMyLocationEnabled(true);
         }
 
-
+        final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         GPSTracker gps = new GPSTracker(this);
         if(gps.canGetLocation()) { // gps enabled} // return boolean true/false
             location_current = gps.getLocation();
@@ -95,13 +110,13 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
             mMap.addCircle(new CircleOptions()
                     .center(new LatLng(l_1, l_2))
-                    .radius(1500)
+                    .radius(600)
                     .strokeColor(0x2000ff00)
                     .fillColor(0x2000ff00));
             CameraUpdate center=
                     CameraUpdateFactory.newLatLng(new LatLng(l_1,
                             l_2));
-            CameraUpdate zoom=CameraUpdateFactory.zoomTo((float)13.8);
+            CameraUpdate zoom=CameraUpdateFactory.zoomTo((float)15);
 
             mMap.moveCamera(center);
             mMap.animateCamera(zoom);
@@ -118,19 +133,111 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 "doing anything";
 
 
-        PostInfo post = new PostInfo(40.45,-79.94,"Everybody is 坑货!");
+        // adding testing points, no meaning here, I have no fucking idea what I am doing here but you will know, so, keep calm
+        String addressLine = "";
+        String city = "";
+        try {
+            List<Address> addresses = geocoder.getFromLocation(l_1 + 0.00001,l_2 + 0.00001,1);
+            if (addresses.size() > 0) {
+                addressLine = addresses.get(0).getAddressLine(0);
+                city = addresses.get(0).getLocality();
+                System.out.println(addressLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        PostInfo post = new PostInfo(l_1 + 0.00001, l_2 + 0.00001,"Can't wait to show others our fantastic Android Application! We worked so hard on that and " +
+                "we believe you guys will love it!!!!",addressLine + ", " + city);
         mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post.getLatitude(), post.getLongitude())).title(post.getMessage()).alpha((float) 0.7));
+                new LatLng(post.getLatitude(), post.getLongitude())).title(post.getMessage()).alpha((float) 0.7)
+                .snippet(post.getAddress()));
 
-        PostInfo post2 = new PostInfo(40.4428000,-79.9364000,Title);
+        try {
+            List<Address> addresses = geocoder.getFromLocation(l_1 + 0.001,l_2 + 0.001,1);
+            if (addresses.size() > 0) {
+                addressLine = addresses.get(0).getAddressLine(0);
+                city = addresses.get(0).getLocality();
+                System.out.println(addressLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        PostInfo post2 = new PostInfo(l_1 + 0.001, l_2 + 0.001, "Oh my god. The lunch is awful. Well, I cannot complain more when I see a lovely girl doing her homework while eating that tiny sandwich. I " +
+                "wish I could help her. Oh, my girlfriend is coming. Never mind.", addressLine + ", " + city);
         mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post2.getLatitude(), post2.getLongitude())).title(post2.getMessage()).alpha((float) 0.7));
+                new LatLng(post2.getLatitude(), post2.getLongitude())).title(post2.getMessage()).alpha((float) 0.7)
+                .snippet(post2.getAddress()));
 
-        posts.add(post);posts.add(post2);
+        try {
+            List<Address> addresses = geocoder.getFromLocation(l_1 + 0.001,l_2 - 0.001,1);
+            if (addresses.size() > 0) {
+                addressLine = addresses.get(0).getAddressLine(0);
+                city = addresses.get(0).getLocality();
+                System.out.println(addressLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        PostInfo post3 = new PostInfo(l_1 + 0.001, l_2 - 0.001, "Come on everyone! We have built a wonderful app on IOS!! Please come to see how amazing it is!!!" +
+                "You know where we are, don't you!", addressLine + ", " + city);
+        mMap.addMarker(new MarkerOptions().position(
+                new LatLng(post3.getLatitude(), post3.getLongitude())).title(post3.getMessage()).alpha((float) 0.7)
+                .snippet(post3.getAddress()));
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(l_1 - 0.002,l_2 - 0.002,1);
+            if (addresses.size() > 0) {
+                addressLine = addresses.get(0).getAddressLine(0);
+                city = addresses.get(0).getLocality();
+                System.out.println(addressLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        PostInfo post4 = new PostInfo(l_1 - 0.002, l_2 - 0.002, "Three midterm exams today, ORZ...", addressLine + ", " + city);
+        mMap.addMarker(new MarkerOptions().position(
+                new LatLng(post4.getLatitude(), post4.getLongitude())).title(post4.getMessage()).alpha((float) 0.7)
+                .snippet(post4.getAddress()));
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(l_1 - 0.002,l_2 + 0.001,1);
+            if (addresses.size() > 0) {
+                addressLine = addresses.get(0).getAddressLine(0);
+                city = addresses.get(0).getLocality();
+                System.out.println(addressLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        PostInfo post5 = new PostInfo(l_1 - 0.002, l_2 + 0.001, "Hey, does anyone want to work on 10601B hw6 together? We have three people in the study room in Wean Library but we are " +
+                "stuck on problem2. Can anyone help us?", addressLine + ", " + city);
+        mMap.addMarker(new MarkerOptions().position(
+                new LatLng(post5.getLatitude(), post5.getLongitude())).title(post5.getMessage()).alpha((float) 0.7)
+                .snippet(post5.getAddress()));
+
+
+        posts.add(post);posts.add(post2);posts.add(post3);posts.add(post4);
+        posts.add(post5);
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(l_1,l_2,1);
+            if (addresses.size() > 0) {
+                addressLine = addresses.get(0).getAddressLine(0);
+                city = addresses.get(0).getLocality();
+                addressInfo = addressLine + ", " + city;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         mMap.setInfoWindowAdapter(this);
         mMap.setOnInfoWindowClickListener(this);
         mMap.setMyLocationEnabled(true);
+        mMap.setOnMapClickListener(this);
 
 
 
@@ -150,20 +257,25 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         refresh.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast toast = Toast.makeText(getApplicationContext(), "now searching!", Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getApplicationContext(), "exploring!", Toast.LENGTH_LONG);
                 toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
                 mMap.clear();
+
+
                 mMap.addCircle(new CircleOptions()
                         .center(new LatLng(l_1, l_2))
-                        .radius(1500)
+                        .radius(600)
                         .strokeColor(0x2000ff00)
                         .fillColor(0x2000ff00));
                 for (int i = 0; i < posts.size(); i++) {
-                    mMap.addMarker(new MarkerOptions().position(
-                            new LatLng(posts.get(i).getLatitude(),posts.get(i).getLongitude()))
-                    .title(posts.get(i).getMessage()).alpha((float)0.7));
+                    //Test for getting address from latitude and longitude
+                            mMap.addMarker(new MarkerOptions().position(
+                                    new LatLng(posts.get(i).getLatitude(),posts.get(i).getLongitude()))
+                                    .title(posts.get(i).getMessage()).alpha((float)0.7)
+                            .snippet(posts.get(i).getAddress()));
                 }
+
             }
         });
 
@@ -190,9 +302,12 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
         MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
                 .icon(BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
         String Title = input;
-        PostInfo post_new = new PostInfo(l_1, l_2,Title);
+        GPSTracker gps_new = new GPSTracker(this);
+        l_1 = gps_new.getLatitude();
+        l_2 = gps_new.getLongitude();
+        PostInfo post_new = new PostInfo(l_1, l_2,Title,addressInfo);
         posts.add(post_new);
         mark.title(Title);
 
@@ -254,7 +369,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         String titleString = marker.getTitle();
         //When click the marker, remember the postInfo for toast display
         postInfoFull = titleString;
-
+        addressInfo = marker.getSnippet();
         //If the text exceeds the default length, break it
         String[] words = titleString.split(" ");
         if (words.length > len) {
@@ -279,10 +394,75 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-
-        //Toast.makeText(getApplicationContext(), "latitude = " + l_1 +
-                //",longitude = " + l_2, Toast.LENGTH_SHORT).show();
+        /*
         Toast.makeText(getApplicationContext(), postInfoFull,
                 Toast.LENGTH_LONG).show();
+        */
+        if (popupWindow == null) {
+            View infoWindow = getLayoutInflater().inflate(R.layout.taste, null);
+            TextView address = (TextView) infoWindow.findViewById(R.id.address);
+            address.setText(addressInfo);
+            TextView title = (TextView) infoWindow.findViewById(R.id.show_something);
+            title.setText(postInfoFull);
+            popupWindow = new PopupWindow(infoWindow);
+            popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            popupWindow.setAnimationStyle(R.style.PopupAnimation);
+            //popupWindow.showAtLocation(infoWindow, Gravity.BOTTOM, 0, 0);
+            popupWindow.showAsDropDown(infoWindow,600,600);
+
+            ImageButton like = (ImageButton) infoWindow.findViewById(R.id.like);
+            like.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Toast.makeText(MapsActivity.this,"wocao",Toast.LENGTH_SHORT);
+                    Toast toast = Toast.makeText(MapsActivity.this, "☆*:.｡. o(≧▽≦)o .｡.:*☆", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.TOP, 0, 60);
+                    toast.show();
+                }
+            });
+
+            ImageButton dontcare = (ImageButton) infoWindow.findViewById(R.id.dontcare);
+            dontcare.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast toast = Toast.makeText(MapsActivity.this, "keep calm because I don't care", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.TOP, 0, 60);
+                    toast.show();
+                }
+            });
+
+            ImageButton report = (ImageButton) infoWindow.findViewById(R.id.report);
+            report.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast toast = Toast.makeText(MapsActivity.this, "Do you really wanna report this post? We will check if there is something " +
+                            "wrong with this post and delete it immediately if we find this post inappropriate. Thanks for your cooperation", Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.TOP, 0, 60);
+                    toast.show();
+                }
+            });
+
+        }
+        else {
+            if (popupWindow.isShowing()) {
+                popupWindow.dismiss();
+                popupWindow = null;
+                return;
+            }
+        }
+
+
+/*
+        TextView textView = new TextView(this);
+        textView.setText("This is a toast");
+*/
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        if (popupWindow != null) {
+            popupWindow.dismiss();
+            popupWindow = null;
+        }
     }
 }
