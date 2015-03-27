@@ -96,8 +96,10 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         GPSTracker gps = new GPSTracker(this);
         if(gps.canGetLocation()) { // gps enabled} // return boolean true/false
             location_current = gps.getLocation();
+
             l_1 = location_current.getLatitude();
             l_2 = location_current.getLongitude();
+
             Latitude.add(l_1);
             Longitude.add(l_2);
             //l_1 = 40.4489771, l_2 = -79.9309191
@@ -146,7 +148,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         } catch (IOException e) {
             e.printStackTrace();
         }
-        PostInfo post = new PostInfo(l_1 + 0.00001, l_2 + 0.00001,"Can't wait to show others our fantastic Android Application! We worked so hard on that and " +
+        PostInfo post = new PostInfo(l_1 + 0.00001, l_2 + 0.001,"Can't wait to show others our fantastic Android Application! We worked so hard on that and " +
                 "we believe you guys will love it!!!!",addressLine + ", " + city);
         mMap.addMarker(new MarkerOptions().position(
                 new LatLng(post.getLatitude(), post.getLongitude())).title(post.getMessage()).alpha((float) 0.7)
@@ -307,7 +309,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         GPSTracker gps_new = new GPSTracker(this);
         l_1 = gps_new.getLatitude();
         l_2 = gps_new.getLongitude();
-        PostInfo post_new = new PostInfo(l_1, l_2,Title,addressInfo);
+        PostInfo post_new = new PostInfo(l_1, l_2,Title,"Carnegie Mellon University, Pittsburgh");
         posts.add(post_new);
         mark.title(Title);
 
@@ -408,7 +410,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             popupWindow.setAnimationStyle(R.style.PopupAnimation);
             //popupWindow.showAtLocation(infoWindow, Gravity.BOTTOM, 0, 0);
-            popupWindow.showAsDropDown(infoWindow,600,600);
+            popupWindow.showAsDropDown(infoWindow,1000,1000);
 
             ImageButton like = (ImageButton) infoWindow.findViewById(R.id.like);
             like.setOnClickListener(new OnClickListener() {
