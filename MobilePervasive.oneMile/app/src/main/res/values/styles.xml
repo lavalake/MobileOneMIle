@@ -1,8 +1,15 @@
 <resources>
 
     <!-- Base application theme. -->
+    <!--
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+         Customize your theme here.
+        </style>
+    -->
+    <style name="PopupAnimation"
+        parent="android:Animation"
+        mce_bogus="1">
+        <item name="android:windowEnterAnimation">@anim/popup_enter</item>
+        <item name="android:windowExitAnimation">@anim/popup_exit</item>
     </style>
-
 </resources>
