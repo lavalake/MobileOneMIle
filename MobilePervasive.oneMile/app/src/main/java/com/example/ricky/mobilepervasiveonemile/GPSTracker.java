@@ -50,10 +50,10 @@ public class GPSTracker extends Service implements LocationListener {
 
     public GPSTracker(Context context) {
         this.mContext = context;
-        getLocation();
+        enableLocationUpdate();
     }
 
-    public Location getLocation() {
+    public Location enableLocationUpdate() {
         try {
             locationManager = (LocationManager) mContext
                     .getSystemService(LOCATION_SERVICE);
@@ -113,6 +113,13 @@ public class GPSTracker extends Service implements LocationListener {
         return location;
     }
 
+    /**
+     * getLocation get the latest location
+     * called by application whenever want to know the current location
+     */
+    public Location getLocation(){
+        return location;
+    }
     /**
      * Stop using GPS listener
      * Calling this function will stop using GPS in your app
@@ -189,6 +196,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+        this.location = location;
     }
 
     @Override

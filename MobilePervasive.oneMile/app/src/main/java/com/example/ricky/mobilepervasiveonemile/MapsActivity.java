@@ -39,6 +39,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.ricky.mobilepervasiveonemile.PostNewActivity;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.ImageLoader.ImageListener;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.NetworkImageView;
+import com.android.volley.toolbox.Volley;
+
 
 
 
@@ -58,10 +69,11 @@ import static android.location.LocationManager.GPS_PROVIDER;
 public class MapsActivity extends FragmentActivity implements InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapClickListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private MapView mapView;
+    GPSTracker gps;
     private Location location_current;
     double l_1 = 0;
     double l_2 = 0;
+    private String url ="https://glacial-springs-4597.herokuapp.com/";
 
     PopupWindow popupWindow;
 
@@ -90,15 +102,23 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 .getMap();
         if (mMap != null) {
             mMap.setMyLocationEnabled(true);
+        }else{
+            System.out.println("mMap null");
         }
 
         final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        GPSTracker gps = new GPSTracker(this);
+        gps = new GPSTracker(this);
+
         if(gps.canGetLocation()) { // gps enabled} // return boolean true/false
             location_current = gps.getLocation();
-
-            l_1 = location_current.getLatitude();
-            l_2 = location_current.getLongitude();
+            if(location_current != null) {
+                l_1 = location_current.getLatitude();
+                l_2 = location_current.getLongitude();
+            }else{
+                System.out.println("location null");
+                l_1 = 40.4489771;
+                l_2 = -79.9309191;
+            }
 
             Latitude.add(l_1);
             Longitude.add(l_2);
@@ -264,7 +284,34 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 toast.show();
                 mMap.clear();
 
+                RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
 
+                StringRequest sRequest=new StringRequest(Request.Method.GET,url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        System.out.println(response);
+                        MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
+                                .icon(BitmapDescriptorFactory
+                                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
+                        String Title = response;
+
+                        l_1 = gps.getLatitude();
+                        l_2 = gps.getLongitude();
+                        PostInfo post_new = new PostInfo(l_1, l_2,Title,"Carnegie Mellon University, Pittsburgh");
+                        posts.add(post_new);
+                        mark.title(Title);
+
+                        mMap.addMarker(mark);
+                        System.out.println(Title);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError arg0) {
+                        System.out.println("sorry,Error");
+                    }
+                });
+                sRequest.setShouldCache(false);
+                requestQueue.add(sRequest);
                 mMap.addCircle(new CircleOptions()
                         .center(new LatLng(l_1, l_2))
                         .radius(600)
@@ -296,25 +343,43 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         super.onResume();
         setUpMapIfNeeded();
         System.out.println("resume");
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        StringRequest sRequest=new StringRequest(Request.Method.GET,url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                System.out.println("!!!!!!response from server "+response);
+                MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
+                String Title = response;
+
+                l_1 = gps.getLatitude();
+                l_2 = gps.getLongitude();
+                PostInfo post_new = new PostInfo(l_1, l_2,Title,"Carnegie Mellon University, Pittsburgh");
+                posts.add(post_new);
+                mark.title(Title);
+
+                mMap.addMarker(mark);
+                System.out.println(Title);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError arg0) {
+                System.out.println("sorry,Error");
+            }
+        });
+        sRequest.setShouldCache(false);
+        System.out.println("send url request");
+        requestQueue.add(sRequest);
         if(getIntent().getStringExtra("input") == null){
             return;
         }
         String input = getIntent().getStringExtra("input").toString();
         postInfoFull = input;
 
-        MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
-                .icon(BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
-        String Title = input;
-        GPSTracker gps_new = new GPSTracker(this);
-        l_1 = gps_new.getLatitude();
-        l_2 = gps_new.getLongitude();
-        PostInfo post_new = new PostInfo(l_1, l_2,Title,"Carnegie Mellon University, Pittsburgh");
-        posts.add(post_new);
-        mark.title(Title);
 
-        mMap.addMarker(mark);
-        System.out.println(Title);
 
     }
 
