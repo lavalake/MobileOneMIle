@@ -100,6 +100,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             l_1 = location_current.getLatitude();
             l_2 = location_current.getLongitude();
 
+            System.out.println("test");
             Latitude.add(l_1);
             Longitude.add(l_2);
             //l_1 = 40.4489771, l_2 = -79.9309191
