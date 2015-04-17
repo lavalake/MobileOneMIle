@@ -12,6 +12,8 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -33,6 +35,8 @@
         <uses-library
             android:name="com.google.android.maps" />
         <uses-permission
+            android:name="android.permission.READ_PHONE_STATE"/>
+        <uses-permission
             android:name="package.name.permission.MAPS_RECEIVE" />
         <uses-permission
             android:name="android.permission.INTERNET" />
@@ -42,6 +46,7 @@
             android:name="android.permission.ACCESS_COARSE_LOCATION" />
         <uses-permission
             android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
         <activity
             android:name=".MapsActivity"

@@ -1,24 +1,14 @@
 package com.example.ricky.mobilepervasiveonemile;
 
-import android.app.ActionBar;
-import android.app.Activity;
-import android.content.Context;
+import java.util.HashMap;
 import android.content.Intent;
-import android.drm.DrmManagerClient;
-import android.graphics.Color;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationListener;
-import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.ArrayMap;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -27,44 +17,36 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View.OnClickListener;
+import android.telephony.TelephonyManager;
+
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.ricky.mobilepervasiveonemile.PostNewActivity;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.ImageLoader.ImageListener;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-
-
-import com.google.android.gms.maps.MapView;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import static android.location.LocationManager.GPS_PROVIDER;
 
 public class MapsActivity extends FragmentActivity implements InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapClickListener {
 
@@ -74,6 +56,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     double l_1 = 0;
     double l_2 = 0;
     private String url ="https://glacial-springs-4597.herokuapp.com/";
+    String imei;
+    Marker ownMarker;
 
     PopupWindow popupWindow;
 
@@ -91,12 +75,20 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     //Used to store the post Info the user just type in
     String postInfoFull = null;
     String addressInfo = null;
+    String Title = null;
+
+    //hashmap to store the marker and post id
+    HashMap<Marker, Integer> markerPostMap;
+    private Integer currentId;
+    private  long timeStamp;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
-
+        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(this.TELEPHONY_SERVICE);
+        imei = telephonyManager.getDeviceId();
+        timeStamp = -1;
         setUpMapIfNeeded();
         mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                 .getMap();
@@ -145,116 +137,10 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
             System.out.println(l_1);
         }
-        double test_l1 = 40.4489771;
-        double test_l2 = -79.9309191;
-        MarkerOptions markPost = new MarkerOptions().position(new LatLng(test_l1,test_l2))
-                .icon(BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-        String Title = "Today I don't feel like doing anything. I just wanna lay in my bed." +
-                "don't feel like picking up my phone, so leave a message at the tone cause today I swear I'm not " +
-                "doing anything";
 
-
-        // adding testing points, no meaning here, I have no fucking idea what I am doing here but you will know, so, keep calm
-        String addressLine = "";
-        String city = "";
-        try {
-            List<Address> addresses = geocoder.getFromLocation(l_1 + 0.00001,l_2 + 0.00001,1);
-            if (addresses.size() > 0) {
-                addressLine = addresses.get(0).getAddressLine(0);
-                city = addresses.get(0).getLocality();
-                System.out.println(addressLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        PostInfo post = new PostInfo(l_1 + 0.00001, l_2 + 0.001,"Can't wait to show others our fantastic Android Application! We worked so hard on that and " +
-                "we believe you guys will love it!!!!",addressLine + ", " + city);
-        mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post.getLatitude(), post.getLongitude())).title(post.getMessage()).alpha((float) 0.7)
-                .snippet(post.getAddress()));
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(l_1 + 0.001,l_2 + 0.001,1);
-            if (addresses.size() > 0) {
-                addressLine = addresses.get(0).getAddressLine(0);
-                city = addresses.get(0).getLocality();
-                System.out.println(addressLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        PostInfo post2 = new PostInfo(l_1 + 0.001, l_2 + 0.001, "Oh my god. The lunch is awful. Well, I cannot complain more when I see a lovely girl doing her homework while eating that tiny sandwich. I " +
-                "wish I could help her. Oh, my girlfriend is coming. Never mind.", addressLine + ", " + city);
-        mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post2.getLatitude(), post2.getLongitude())).title(post2.getMessage()).alpha((float) 0.7)
-                .snippet(post2.getAddress()));
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(l_1 + 0.001,l_2 - 0.001,1);
-            if (addresses.size() > 0) {
-                addressLine = addresses.get(0).getAddressLine(0);
-                city = addresses.get(0).getLocality();
-                System.out.println(addressLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        PostInfo post3 = new PostInfo(l_1 + 0.001, l_2 - 0.001, "Come on everyone! We have built a wonderful app on IOS!! Please come to see how amazing it is!!!" +
-                "You know where we are, don't you!", addressLine + ", " + city);
-        mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post3.getLatitude(), post3.getLongitude())).title(post3.getMessage()).alpha((float) 0.7)
-                .snippet(post3.getAddress()));
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(l_1 - 0.002,l_2 - 0.002,1);
-            if (addresses.size() > 0) {
-                addressLine = addresses.get(0).getAddressLine(0);
-                city = addresses.get(0).getLocality();
-                System.out.println(addressLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        PostInfo post4 = new PostInfo(l_1 - 0.002, l_2 - 0.002, "Three midterm exams today, ORZ...", addressLine + ", " + city);
-        mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post4.getLatitude(), post4.getLongitude())).title(post4.getMessage()).alpha((float) 0.7)
-                .snippet(post4.getAddress()));
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(l_1 - 0.002,l_2 + 0.001,1);
-            if (addresses.size() > 0) {
-                addressLine = addresses.get(0).getAddressLine(0);
-                city = addresses.get(0).getLocality();
-                System.out.println(addressLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        PostInfo post5 = new PostInfo(l_1 - 0.002, l_2 + 0.001, "Hey, does anyone want to work on 10601B hw6 together? We have three people in the study room in Wean Library but we are " +
-                "stuck on problem2. Can anyone help us?", addressLine + ", " + city);
-        mMap.addMarker(new MarkerOptions().position(
-                new LatLng(post5.getLatitude(), post5.getLongitude())).title(post5.getMessage()).alpha((float) 0.7)
-                .snippet(post5.getAddress()));
-
-
-        posts.add(post);posts.add(post2);posts.add(post3);posts.add(post4);
-        posts.add(post5);
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(l_1,l_2,1);
-            if (addresses.size() > 0) {
-                addressLine = addresses.get(0).getAddressLine(0);
-                city = addresses.get(0).getLocality();
-                addressInfo = addressLine + ", " + city;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        markerPostMap = new HashMap<Marker, Integer>();
+        // query data from server
+        getPosts();
 
         mMap.setInfoWindowAdapter(this);
         mMap.setOnInfoWindowClickListener(this);
@@ -283,47 +169,22 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
                 mMap.clear();
+                posts.clear();
+                // query data from server
+               getPosts();
+                if(ownMarker != null) {
+                    MarkerOptions nMark = new MarkerOptions().position(new LatLng(ownMarker.getPosition().latitude,ownMarker.getPosition().longitude))
+                            .icon(BitmapDescriptorFactory
+                                    .defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(ownMarker.getTitle()).snippet(ownMarker.getSnippet());
+                    mMap.addMarker(nMark);
+                }
 
-                RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
-
-                StringRequest sRequest=new StringRequest(Request.Method.GET,url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        System.out.println(response);
-                        MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
-                                .icon(BitmapDescriptorFactory
-                                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
-                        String Title = response;
-
-                        l_1 = gps.getLatitude();
-                        l_2 = gps.getLongitude();
-                        PostInfo post_new = new PostInfo(l_1, l_2,Title,"Carnegie Mellon University, Pittsburgh");
-                        posts.add(post_new);
-                        mark.title(Title);
-
-                        mMap.addMarker(mark);
-                        System.out.println(Title);
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError arg0) {
-                        System.out.println("sorry,Error");
-                    }
-                });
-                sRequest.setShouldCache(false);
-                requestQueue.add(sRequest);
                 mMap.addCircle(new CircleOptions()
                         .center(new LatLng(l_1, l_2))
                         .radius(600)
                         .strokeColor(0x2000ff00)
                         .fillColor(0x2000ff00));
-                for (int i = 0; i < posts.size(); i++) {
-                    //Test for getting address from latitude and longitude
-                            mMap.addMarker(new MarkerOptions().position(
-                                    new LatLng(posts.get(i).getLatitude(),posts.get(i).getLongitude()))
-                                    .title(posts.get(i).getMessage()).alpha((float)0.7)
-                            .snippet(posts.get(i).getAddress()));
-                }
+
 
             }
         });
@@ -331,6 +192,68 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
     }
 
+    protected void getPosts(){
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        String jsonurl = url + "posts.json";
+
+        JsonArrayRequest sRequest=new JsonArrayRequest(Request.Method.GET, jsonurl, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                System.out.println(response);
+                double l_a = 0;
+                double l_o = 0;
+                Integer id = 0;
+
+                try {
+
+                    {
+                        for(int i=0; i<response.length(); i++) {
+
+                            JSONObject json = response.getJSONObject(i);
+
+                            Title = json.getString("content");
+
+
+                            l_a = json.getDouble("latitude");
+                            l_o = json.getDouble("longitude");
+                            //id = json.getInt("id");
+                            id = 0;
+                            System.out.println("Title "+Title+" l_1 "+l_a+" l2 "+l_o);
+                            PostInfo post_new = new PostInfo(l_a, l_o, Title, "Carnegie Mellon University, Pittsburgh");
+                            posts.add(post_new);
+                            MarkerOptions nMark = new MarkerOptions().position(new LatLng(l_a,l_o))
+                                    .icon(BitmapDescriptorFactory
+                                            .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
+
+                            nMark.title(Title);
+
+
+                            Marker m = mMap.addMarker(nMark);
+
+                            if(m == null)
+                                System.out.println("marker "+m);
+                            else
+                                if(id != null)
+                                    markerPostMap.put(m, id);
+                            // dddSystem.out.println("test");
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError arg0) {
+                System.out.println("sorry,Error");
+            }
+        });
+        sRequest.setShouldCache(false);
+        requestQueue.add(sRequest);
+    }
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -344,40 +267,65 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         setUpMapIfNeeded();
         System.out.println("resume");
 
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
 
-        StringRequest sRequest=new StringRequest(Request.Method.GET,url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                System.out.println("!!!!!!response from server "+response);
-                MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1,l_2))
+        if(getIntent().getStringExtra("input") != null){
+            String input = getIntent().getStringExtra("input").toString();
+            postInfoFull = input;
+            long newTime = System.currentTimeMillis();
+            if(timeStamp == -1 || (newTime - timeStamp > 60000)) {
+                MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1, l_2))
                         .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
-                String Title = response;
+                                .defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(postInfoFull).snippet(addressInfo);
+                String Title = input;
 
                 l_1 = gps.getLatitude();
                 l_2 = gps.getLongitude();
-                PostInfo post_new = new PostInfo(l_1, l_2,Title,"Carnegie Mellon University, Pittsburgh");
+                PostInfo post_new = new PostInfo(l_1, l_2, Title, "Carnegie Mellon University, Pittsburgh");
                 posts.add(post_new);
                 mark.title(Title);
-
-                mMap.addMarker(mark);
+                ownMarker = mMap.addMarker(mark);
                 System.out.println(Title);
+                timeStamp = newTime;
+                RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+                String jsonurl = url + "posts";
+                JSONObject jsonObj = new JSONObject();
+                JSONObject postObj = new JSONObject();
+                try {
+
+                    jsonObj.put("content", Title);
+                    jsonObj.put("latitude", l_1);
+                    jsonObj.put("longitude", l_2);
+                    jsonObj.put("imei", 1111111);
+                    postObj.put("post", jsonObj);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObjectRequest sRequest = new JsonObjectRequest(Request.Method.POST, jsonurl, postObj, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        System.out.println(response);
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError arg0) {
+                        System.out.println("sorry,Error");
+                    }
+                });
+                sRequest.setShouldCache(false);
+                requestQueue.add(sRequest);
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError arg0) {
-                System.out.println("sorry,Error");
+            else{
+                System.out.println("new marker!!!!!!!");
+                ownMarker.setTitle(postInfoFull);
             }
-        });
-        sRequest.setShouldCache(false);
-        System.out.println("send url request");
-        requestQueue.add(sRequest);
-        if(getIntent().getStringExtra("input") == null){
-            return;
+
+
         }
-        String input = getIntent().getStringExtra("input").toString();
-        postInfoFull = input;
+
 
 
 
@@ -432,7 +380,10 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         View infoWindow = getLayoutInflater().inflate(R.layout.infowindow,null);
         TextView title = (TextView) infoWindow.findViewById(R.id.marker_title);
         //TextView snippet = (TextView) infoWindow.findViewById(R.id.marker_snippet);
-
+        System.out.println("change color");
+        if(marker != ownMarker)
+            marker.setIcon(BitmapDescriptorFactory
+                .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
         String titleString = marker.getTitle();
         //When click the marker, remember the postInfo for toast display
         postInfoFull = titleString;
@@ -455,7 +406,6 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         title.setText(titleString);
 
 
-
         return infoWindow;
     }
 
@@ -465,6 +415,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         Toast.makeText(getApplicationContext(), postInfoFull,
                 Toast.LENGTH_LONG).show();
         */
+        System.out.println("marker");
+        currentId = markerPostMap.get(marker);
         if (popupWindow == null) {
             View infoWindow = getLayoutInflater().inflate(R.layout.taste, null);
             TextView address = (TextView) infoWindow.findViewById(R.id.address);
@@ -472,19 +424,51 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             TextView title = (TextView) infoWindow.findViewById(R.id.show_something);
             title.setText(postInfoFull);
             popupWindow = new PopupWindow(infoWindow);
-            popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            //popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            //popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, 0);
             popupWindow.setAnimationStyle(R.style.PopupAnimation);
-            //popupWindow.showAtLocation(infoWindow, Gravity.BOTTOM, 0, 0);
-            popupWindow.showAsDropDown(infoWindow,1000,1000);
+            //popupWindow.showAtLocation(findViewById(R.id.map), Gravity.CENTER_VERTICAL, 200, 200);
+            popupWindow.showAsDropDown(infoWindow,750,750);
 
             ImageButton like = (ImageButton) infoWindow.findViewById(R.id.like);
             like.setOnClickListener(new OnClickListener() {
+                
                 @Override
                 public void onClick(View v) {
                     //Toast.makeText(MapsActivity.this,"wocao",Toast.LENGTH_SHORT);
                     Toast toast = Toast.makeText(MapsActivity.this, "☆*:.｡. o(≧▽≦)o .｡.:*☆", Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP, 0, 60);
                     toast.show();
+                    RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
+
+                    String jsonurl = url + "posts";
+                    JSONObject jsonObj = new JSONObject();
+                    JSONObject postObj = new JSONObject();
+                    try {
+
+                        jsonObj.put("id",currentId);
+                        jsonObj.put("like", true);
+                        postObj.put("post", jsonObj);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.POST, jsonurl, postObj, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            System.out.println(response);
+
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError arg0) {
+                            System.out.println("sorry,Error");
+                        }
+                    });
+                    sRequest.setShouldCache(false);
+                    requestQueue.add(sRequest);
                 }
             });
 
@@ -495,6 +479,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                     Toast toast = Toast.makeText(MapsActivity.this, "keep calm because I don't care", Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP, 0, 60);
                     toast.show();
+
                 }
             });
 
@@ -506,6 +491,35 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                             "wrong with this post and delete it immediately if we find this post inappropriate. Thanks for your cooperation", Toast.LENGTH_LONG);
                     toast.setGravity(Gravity.TOP, 0, 60);
                     toast.show();
+                    RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
+
+                    String jsonurl = url + "posts";
+                    JSONObject jsonObj = new JSONObject();
+                    JSONObject postObj = new JSONObject();
+                    try {
+
+                        jsonObj.put("id",currentId);
+                        jsonObj.put("report", true);
+                        postObj.put("post", jsonObj);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.POST, jsonurl, postObj, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            System.out.println(response);
+
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError arg0) {
+                            System.out.println("sorry,Error");
+                        }
+                    });
+                    sRequest.setShouldCache(false);
+                    requestQueue.add(sRequest);
                 }
             });
 
