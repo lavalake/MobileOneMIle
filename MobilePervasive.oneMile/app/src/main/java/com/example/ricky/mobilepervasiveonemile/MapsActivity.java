@@ -36,6 +36,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -150,7 +152,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
 
         //set click listener for button
-        Button postNew = (Button) findViewById(R.id.marker_something_new);
+        FloatingActionButton postNew = (FloatingActionButton) findViewById(R.id.marker_something_new);
         postNew.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -161,7 +163,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         });
 
         //set fresh listener for button using sonar
-        Button refresh = (Button) findViewById(R.id.refresh);
+        FloatingActionButton refresh = (FloatingActionButton) findViewById(R.id.refresh);
         refresh.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
