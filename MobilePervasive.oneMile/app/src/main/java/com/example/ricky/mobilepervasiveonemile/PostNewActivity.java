@@ -7,13 +7,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.getbase.floatingactionbutton.FloatingActionButton;
+
 public class PostNewActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.post_input);
-        Button send = (Button) findViewById(R.id.SendButton);
+        //Button send = (Button) findViewById(R.id.SendButton);
+        FloatingActionButton send = (FloatingActionButton) findViewById(R.id.SendButton);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

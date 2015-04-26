@@ -59,6 +59,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PostNewActivity"
+            android:label="What's up?"
             android:launchMode="singleTask"></activity>
 
     </application>

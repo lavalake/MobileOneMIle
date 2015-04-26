@@ -84,6 +84,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     private Integer currentId;
     private  long timeStamp;
 
+    //final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+    Geocoder geocoder;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +94,9 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         imei = telephonyManager.getDeviceId();
         timeStamp = -1;
         setUpMapIfNeeded();
+
+        geocoder = new Geocoder(this, Locale.getDefault());
+
         mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                 .getMap();
         if (mMap != null) {
@@ -100,7 +105,6 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             System.out.println("mMap null");
         }
 
-        final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         gps = new GPSTracker(this);
 
         if(gps.canGetLocation()) { // gps enabled} // return boolean true/false
@@ -143,6 +147,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         markerPostMap = new HashMap<Marker, Integer>();
         // query data from server
         getPosts();
+
+
 
         mMap.setInfoWindowAdapter(this);
         mMap.setOnInfoWindowClickListener(this);
@@ -275,13 +281,31 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             postInfoFull = input;
             long newTime = System.currentTimeMillis();
             if(timeStamp == -1 || (newTime - timeStamp > 60000)) {
+                l_1 = gps.getLatitude();
+                l_2 = gps.getLongitude();
+                //test for address
+                String addressLine = null;
+                String city = null;
+                try {
+                    List<Address> addresses = geocoder.getFromLocation(l_1, l_2, 1);
+                    if (addresses.size() > 0) {
+                        addressLine = addresses.get(0).getAddressLine(0);
+                        city = addresses.get(0).getLocality();
+                        System.out.println(addressLine);
+                        addressInfo = addressLine;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 MarkerOptions mark = new MarkerOptions().position(new LatLng(l_1, l_2))
                         .icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(postInfoFull).snippet(addressInfo);
                 String Title = input;
 
-                l_1 = gps.getLatitude();
-                l_2 = gps.getLongitude();
+
+
+
+
                 PostInfo post_new = new PostInfo(l_1, l_2, Title, "Carnegie Mellon University, Pittsburgh");
                 posts.add(post_new);
                 mark.title(Title);
@@ -431,7 +455,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             //popupWindow.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, 0);
             popupWindow.setAnimationStyle(R.style.PopupAnimation);
             //popupWindow.showAtLocation(findViewById(R.id.map), Gravity.CENTER_VERTICAL, 200, 200);
-            popupWindow.showAsDropDown(infoWindow,750,750);
+            popupWindow.showAsDropDown(infoWindow,720,720);
 
             ImageButton like = (ImageButton) infoWindow.findViewById(R.id.like);
             like.setOnClickListener(new OnClickListener() {
