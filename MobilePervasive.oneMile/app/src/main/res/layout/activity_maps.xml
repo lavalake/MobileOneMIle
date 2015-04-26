@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@android:color/transparent"
     android:clickable="true">
 
     <fragment android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -11,26 +13,48 @@
     android:layout_height="450dp"
     android:id="@+id/map" tools:context=".MapsActivity" />
 
-    <Button
-        android:id="@+id/marker_something_new"
-        android:layout_width="195dp"
-        android:layout_height="wrap_content"
-        android:text="Something New?"
-        android:clickable="true"
-        android:layout_gravity="center_horizontal"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/map" />
+        android:background="@android:color/transparent"
+        android:layout_below="@+id/map"
+        android:layout_marginBottom="-16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
 
-    <Button
-        android:id="@+id/refresh"
-        android:layout_width="195dp"
-        android:layout_height="wrap_content"
-        android:text="exploring now!"
-        android:clickable="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/map" />
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_alignParentBottom="true"
+
+            fab:fab_icon="@drawable/ic_action_refresh"
+            fab:fab_colorNormal="@color/pink"
+            fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginEnd="16dp" />
+
+        <com.getbase.floatingactionbutton.AddFloatingActionButton
+            android:id="@+id/marker_something_new"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            fab:fab_plusIconColor="@color/half_black"
+            fab:fab_colorNormal="@color/blue"
+            fab:fab_colorPressed="@color/white_pressed"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="190dp"
+            android:layout_marginStart="16dp"
+
+             />
+    </LinearLayout>
 
 </RelativeLayout>
