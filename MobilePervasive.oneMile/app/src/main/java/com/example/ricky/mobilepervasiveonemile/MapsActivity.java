@@ -1,5 +1,6 @@
 package com.example.ricky.mobilepervasiveonemile;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import android.content.Intent;
 import android.location.Address;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View.OnClickListener;
 import android.telephony.TelephonyManager;
+import java.security.*;
 
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.CameraUpdate;
@@ -57,8 +59,9 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
     private Location location_current;
     double l_1 = 0;
     double l_2 = 0;
-    private String url ="https://glacial-springs-4597.herokuapp.com/";
+    private String url ="https://enigmatic-spire-7134.herokuapp.com/";
     String imei;
+    String hashtext;
     Marker ownMarker;
 
     PopupWindow popupWindow;
@@ -81,6 +84,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
     //hashmap to store the marker and post id
     HashMap<Marker, Integer> markerPostMap;
+    public HashSet<Integer> ownPostSet;
     private Integer currentId;
     private  long timeStamp;
 
@@ -92,6 +96,21 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         setContentView(R.layout.activity_maps);
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(this.TELEPHONY_SERVICE);
         imei = telephonyManager.getDeviceId();
+        MessageDigest m = null;
+        try {
+            m = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        m.reset();
+        m.update(imei.getBytes());
+        byte[] digest = m.digest();
+        BigInteger bigInt = new BigInteger(1,digest);
+        hashtext = bigInt.toString(16);
+// Now we need to zero pad it if you actually want the full 32 chars.
+        while(hashtext.length() < 32 ){
+            hashtext = "0"+hashtext;
+        }
         timeStamp = -1;
         setUpMapIfNeeded();
 
@@ -145,6 +164,7 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         }
 
         markerPostMap = new HashMap<Marker, Integer>();
+        ownPostSet = new HashSet<Integer>();
         // query data from server
         getPosts();
 
@@ -225,25 +245,61 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
 
                             l_a = json.getDouble("latitude");
                             l_o = json.getDouble("longitude");
-                            //id = json.getInt("id");
-                            id = 0;
+                            String hashImei = json.getString("imei");
+                            int postId = json.getInt("id");
+                            String addressLine = null;
+                            String city = null;
+                            try {
+                                List<Address> addresses = geocoder.getFromLocation(l_a, l_o, 1);
+                                if (addresses.size() > 0) {
+                                    addressLine = addresses.get(0).getAddressLine(0);
+                                    city = addresses.get(0).getLocality();
+                                    System.out.println(addressLine);
+                                    addressInfo = addressLine;
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            id = json.getInt("id");
+
                             System.out.println("Title "+Title+" l_1 "+l_a+" l2 "+l_o);
                             PostInfo post_new = new PostInfo(l_a, l_o, Title, "Carnegie Mellon University, Pittsburgh");
                             posts.add(post_new);
-                            MarkerOptions nMark = new MarkerOptions().position(new LatLng(l_a,l_o))
-                                    .icon(BitmapDescriptorFactory
-                                            .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
+                            if(!hashImei.equals(hashtext)) {
+                                MarkerOptions nMark = new MarkerOptions().position(new LatLng(l_a, l_o))
+                                        .icon(BitmapDescriptorFactory
+                                                .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title(postInfoFull).snippet(addressInfo);
+                                nMark.title(Title);
 
-                            nMark.title(Title);
 
-
-                            Marker m = mMap.addMarker(nMark);
-
-                            if(m == null)
-                                System.out.println("marker "+m);
-                            else
+                                Marker m = mMap.addMarker(nMark);
+                                if(m == null)
+                                    System.out.println("marker "+m);
+                                else
                                 if(id != null)
                                     markerPostMap.put(m, id);
+                            }
+                            else{
+                                MarkerOptions nMark = new MarkerOptions().position(new LatLng(l_a, l_o))
+                                        .icon(BitmapDescriptorFactory
+                                                .defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(postInfoFull).snippet(addressInfo);
+                                nMark.title(Title);
+
+
+                                Marker m = mMap.addMarker(nMark);
+                                if(m == null)
+                                    System.out.println("marker "+m);
+                                else
+                                if(id != null) {
+                                    markerPostMap.put(m, id);
+                                    ownPostSet.add(postId);
+                                }
+                            }
+
+
+
+
+
                             // dddSystem.out.println("test");
                         }
                     }
@@ -310,6 +366,8 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 posts.add(post_new);
                 mark.title(Title);
                 ownMarker = mMap.addMarker(mark);
+                markerPostMap.put(ownMarker,-1);
+                ownPostSet.add(-1);
                 System.out.println(Title);
                 timeStamp = newTime;
                 RequestQueue requestQueue = Volley.newRequestQueue(this);
@@ -317,13 +375,35 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 String jsonurl = url + "posts";
                 JSONObject jsonObj = new JSONObject();
                 JSONObject postObj = new JSONObject();
+                /*
+                MessageDigest m = null;
+                try {
+                    m = MessageDigest.getInstance("MD5");
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                }
+                m.reset();
+                m.update(imei.getBytes());
+                byte[] digest = m.digest();
+                BigInteger bigInt = new BigInteger(1,digest);
+                String hashtext = bigInt.toString(16);
+// Now we need to zero pad it if you actually want the full 32 chars.
+                while(hashtext.length() < 32 ){
+                    hashtext = "0"+hashtext;
+                }*/
+                System.out.println("imei hashcode "+imei + " " + hashtext);
                 try {
 
                     jsonObj.put("content", Title);
                     jsonObj.put("latitude", l_1);
                     jsonObj.put("longitude", l_2);
-                    jsonObj.put("imei", 1111111);
+                    jsonObj.put("imei", hashtext);
+                    jsonObj.put("like", 0);
+                    jsonObj.put("report", 0);
+                    jsonObj.put("dontcare", 0);
+
                     postObj.put("post", jsonObj);
+
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -333,12 +413,20 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                     @Override
                     public void onResponse(JSONObject response) {
                         System.out.println(response);
+                        try {
+                            int id = response.getInt("id");
+                            markerPostMap.put(ownMarker,id);
+                            System.out.println("receive id "+id);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
 
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError arg0) {
-                        System.out.println("sorry,Error");
+                        System.out.println("sorry,Error" + arg0);
                     }
                 });
                 sRequest.setShouldCache(false);
@@ -346,7 +434,10 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             }
             else{
                 System.out.println("new marker!!!!!!!");
-                ownMarker.setTitle(postInfoFull);
+                Toast toast = Toast.makeText(MapsActivity.this, "can not create new post, please wait for a while", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP, 0, 60);
+                toast.show();
+                //ownMarker.setTitle(postInfoFull);
             }
 
 
@@ -406,10 +497,14 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
         View infoWindow = getLayoutInflater().inflate(R.layout.infowindow,null);
         TextView title = (TextView) infoWindow.findViewById(R.id.marker_title);
         //TextView snippet = (TextView) infoWindow.findViewById(R.id.marker_snippet);
-        System.out.println("change color");
-        if(marker != ownMarker)
-            marker.setIcon(BitmapDescriptorFactory
-                .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+        currentId = markerPostMap.get(marker);
+        if(!ownPostSet.contains(currentId)) {
+
+            System.out.println("change color");
+            if (marker != ownMarker)
+                marker.setIcon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+        }
         String titleString = marker.getTitle();
         //When click the marker, remember the postInfo for toast display
         postInfoFull = titleString;
@@ -463,25 +558,33 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
                 @Override
                 public void onClick(View v) {
                     //Toast.makeText(MapsActivity.this,"wocao",Toast.LENGTH_SHORT);
+                    if(ownPostSet.contains(currentId)){
+                        Toast toast = Toast.makeText(MapsActivity.this, "can not like your own post", Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.TOP, 0, 60);
+                        toast.show();
+                        return;
+                    }
                     Toast toast = Toast.makeText(MapsActivity.this, "☆*:.｡. o(≧▽≦)o .｡.:*☆", Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP, 0, 60);
                     toast.show();
                     RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
 
-                    String jsonurl = url + "posts";
+                    String jsonurl = url +"posts/" + currentId;
                     JSONObject jsonObj = new JSONObject();
                     JSONObject postObj = new JSONObject();
                     try {
 
-                        jsonObj.put("id",currentId);
+                        //jsonObj.put("id",currentId);
                         jsonObj.put("like", true);
+                        jsonObj.put("report", false);
+                        jsonObj.put("dontcare", false);
                         postObj.put("post", jsonObj);
 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
-                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.POST, jsonurl, postObj, new Response.Listener<JSONObject>() {
+                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.PATCH, jsonurl, postObj, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             System.out.println(response);
@@ -502,9 +605,46 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             dontcare.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(ownPostSet.contains(currentId)){
+                        Toast toast = Toast.makeText(MapsActivity.this, "can not dont care your own post", Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.TOP, 0, 60);
+                        toast.show();
+                        return;
+                    }
                     Toast toast = Toast.makeText(MapsActivity.this, "keep calm because I don't care", Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP, 0, 60);
                     toast.show();
+                    RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
+
+                    String jsonurl = url +"posts/" + currentId;
+                    JSONObject jsonObj = new JSONObject();
+                    JSONObject postObj = new JSONObject();
+                    try {
+
+                        //jsonObj.put("id",currentId);
+                        jsonObj.put("dontcare", true);
+                        jsonObj.put("like", false);
+                        jsonObj.put("report", true);
+                        postObj.put("post", jsonObj);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.PATCH, jsonurl, postObj, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            System.out.println(response);
+
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError arg0) {
+                            System.out.println("sorry,Error");
+                        }
+                    });
+                    sRequest.setShouldCache(false);
+                    requestQueue.add(sRequest);
 
                 }
             });
@@ -513,26 +653,34 @@ public class MapsActivity extends FragmentActivity implements InfoWindowAdapter,
             report.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(ownPostSet.contains(currentId)){
+                        Toast toast = Toast.makeText(MapsActivity.this, "can not report your own post", Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.TOP, 0, 60);
+                        toast.show();
+                        return;
+                    }
                     Toast toast = Toast.makeText(MapsActivity.this, "Do you really wanna report this post? We will check if there is something " +
                             "wrong with this post and delete it immediately if we find this post inappropriate. Thanks for your cooperation", Toast.LENGTH_LONG);
                     toast.setGravity(Gravity.TOP, 0, 60);
                     toast.show();
                     RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());
 
-                    String jsonurl = url + "posts";
+                    String jsonurl = url + "posts/" + currentId;
                     JSONObject jsonObj = new JSONObject();
                     JSONObject postObj = new JSONObject();
                     try {
 
-                        jsonObj.put("id",currentId);
+                        //jsonObj.put("id",currentId);
                         jsonObj.put("report", true);
+                        jsonObj.put("like", false);
+                        jsonObj.put("dontcare", false);
                         postObj.put("post", jsonObj);
 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
-                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.POST, jsonurl, postObj, new Response.Listener<JSONObject>() {
+                    JsonObjectRequest sRequest=new JsonObjectRequest(Request.Method.PATCH, jsonurl, postObj, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             System.out.println(response);

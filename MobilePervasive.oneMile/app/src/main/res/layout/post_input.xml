@@ -30,7 +30,7 @@
 
 
         fab:fab_icon="@drawable/ic_action_send"
-        fab:fab_colorNormal="@color/pink"
+        fab:fab_colorNormal="@color/blue_semi_transparent"
         fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center_horizontal" />

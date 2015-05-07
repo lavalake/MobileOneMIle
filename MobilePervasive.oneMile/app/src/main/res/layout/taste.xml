@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         fab:fab_icon="@drawable/ic_action_star"
-        fab:fab_colorNormal="@color/pink"
+        fab:fab_colorNormal="@color/blue_semi_transparent"
         fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
         android:layout_alignTop="@+id/report"
         android:layout_alignStart="@+id/show_something"/>
@@ -59,7 +59,7 @@
 
 
         fab:fab_icon="@drawable/ic_action_delete"
-        fab:fab_colorNormal="@color/pink"
+        fab:fab_colorNormal="@color/blue_semi_transparent"
         fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
         android:layout_alignTop="@+id/report"
         android:layout_centerHorizontal="true"/>
@@ -89,7 +89,7 @@
 
 
         fab:fab_icon="@drawable/ic_action_warning"
-        fab:fab_colorNormal="@color/pink"
+        fab:fab_colorNormal="@color/blue_semi_transparent"
         fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
         android:layout_below="@+id/show_something"
         android:layout_alignEnd="@+id/show_something"/>
